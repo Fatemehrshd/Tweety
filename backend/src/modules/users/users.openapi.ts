@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { registry, PublicUserSchema, ErrorResponseSchema } from "@/modules/shared/swagger";
+import { registry, PublicUserSchema, CursorPageOfPostsSchema, ErrorResponseSchema } from "@/modules/shared/swagger";
 import { UpdateProfileBodySchema } from "./users.schemas";
 
 extendZodWithOpenApi(z);
@@ -21,6 +21,27 @@ registry.registerPath({
   responses: {
     200: { description: "User profile", content: { "application/json": { schema: PublicUserSchema } } },
     404: { description: "Not found", content: { "application/json": { schema: ErrorResponseSchema } } },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/users/{username}/posts",
+  tags,
+  summary: "List a user's posts by username, newest first (cursor-paginated)",
+  request: {
+    params: z.object({ username: z.string() }),
+    query: z.object({
+      cursor: z.string().optional(),
+      limit: z.coerce.number().optional(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Paginated user posts",
+      content: { "application/json": { schema: CursorPageOfPostsSchema } },
+    },
+    404: { description: "User not found", content: { "application/json": { schema: ErrorResponseSchema } } },
   },
 });
 

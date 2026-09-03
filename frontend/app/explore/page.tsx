@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Nav from "@/components/Nav";
 import { api, type Post } from "@/lib/api-client";
 
@@ -56,15 +57,22 @@ export default function ExplorePage() {
               <div key={post.id} className="card">
                 <div className="flex items-start gap-3">
                   {post.author.profilePictureUrl && (
-                    <img
-                      src={post.author.profilePictureUrl}
-                      alt={post.author.username}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    <Link href={`/users/${post.author.username}`}>
+                      <img
+                        src={post.author.profilePictureUrl}
+                        alt={post.author.username}
+                        className="w-10 h-10 rounded-full object-cover hover:opacity-80"
+                      />
+                    </Link>
                   )}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold">@{post.author.username}</span>
+                      <Link
+                        href={`/users/${post.author.username}`}
+                        className="font-semibold hover:underline"
+                      >
+                        @{post.author.username}
+                      </Link>
                       <span className="text-sm text-gray-500">
                         {new Date(post.createdAt).toLocaleString()}
                       </span>

@@ -67,6 +67,11 @@ export const api = {
   updateMe: (token: string, data: { bio?: string | null; profilePictureUrl?: string | null }) =>
     request<User>("PATCH", "/api/users/me", { token, body: data }),
   getUserByUsername: (username: string) => request<User>("GET", `/api/users/${username}`),
+  getUserPosts: (username: string, cursor?: string, limit = 20) => {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (cursor) params.set("cursor", cursor);
+    return request<CursorPage<Post>>("GET", `/api/users/${username}/posts?${params}`);
+  },
 
   // Posts
   getMyPosts: (token: string, cursor?: string, limit = 20) => {

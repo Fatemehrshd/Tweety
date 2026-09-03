@@ -1,7 +1,9 @@
 import { NotFoundError } from "@/modules/shared/errors";
-import type { PublicUser } from "@/modules/shared/api-types";
+import type { PublicUser, PublicPost, CursorPage } from "@/modules/shared/api-types";
 import type { User } from "@/db/entities/User";
 import { findUserById, findUserByUsername, updateUser } from "./users.repository";
+// Cross-module call via the posts module's exposed service (never its repository).
+import { getPostsByAuthor } from "@/modules/posts";
 
 export function toPublicUser(user: User): PublicUser {
   return {
@@ -24,6 +26,16 @@ export async function getProfileById(id: string): Promise<PublicUser> {
   const user = await findUserById(id);
   if (!user) throw new NotFoundError("User not found");
   return toPublicUser(user);
+}
+
+export async function getPostsByUsername(
+  username: string,
+  cursor: string | null,
+  limit = 20,
+): Promise<CursorPage<PublicPost>> {
+  const user = await findUserByUsername(username);
+  if (!user) throw new NotFoundError("User not found");
+  return getPostsByAuthor(user.id, cursor, limit);
 }
 
 export async function updateProfile(
