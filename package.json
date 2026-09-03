@@ -1,0 +1,19 @@
+{
+  "name": "final-project",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter backend --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build": "pnpm --filter backend build && pnpm --filter frontend build",
+    "typecheck": "pnpm --filter backend typecheck && pnpm --filter frontend typecheck",
+    "db:migrate": "pnpm --filter backend migration:run",
+    "db:generate": "pnpm --filter backend migration:generate",
+    "db:revert": "pnpm --filter backend migration:revert"
+  }
+}
