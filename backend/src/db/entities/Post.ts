@@ -11,7 +11,7 @@ import {
   BeforeInsert,
   Check,
 } from "typeorm";
-import { User } from "./User";
+import type { User } from "./User";
 
 @Entity({ name: "posts" })
 @Index("idx_posts_created_at", ["createdAt"])
@@ -24,7 +24,9 @@ export class Post {
   @Column({ type: "uuid", name: "author_id" })
   authorId!: string;
 
-  @ManyToOne(() => User, (user) => user.posts, { onDelete: "CASCADE" })
+  // String target breaks the Post <-> User runtime import cycle
+  // (emitDecoratorMetadata would otherwise evaluate the class at import time).
+  @ManyToOne("User", "posts", { onDelete: "CASCADE" })
   @JoinColumn({ name: "author_id" })
   author!: User;
 
