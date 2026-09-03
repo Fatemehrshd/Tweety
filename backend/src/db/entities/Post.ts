@@ -11,7 +11,7 @@ import {
   BeforeInsert,
   Check,
 } from "typeorm";
-import type { User } from "./User";
+import { User } from "./User";
 
 @Entity({ name: "posts" })
 @Index("idx_posts_created_at", ["createdAt"])
@@ -24,9 +24,9 @@ export class Post {
   @Column({ type: "uuid", name: "author_id" })
   authorId!: string;
 
-  // String target breaks the Post <-> User runtime import cycle
-  // (emitDecoratorMetadata would otherwise evaluate the class at import time).
-  @ManyToOne("User", "posts", { onDelete: "CASCADE" })
+  // Function-form target references the class object, so this survives
+  // production minification (class names are not preserved in prod builds).
+  @ManyToOne(() => User, (user) => user.posts, { onDelete: "CASCADE" })
   @JoinColumn({ name: "author_id" })
   author!: User;
 

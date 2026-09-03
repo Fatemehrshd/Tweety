@@ -9,7 +9,7 @@ import {
   OneToMany,
   Index,
 } from "typeorm";
-import type { Post } from "./Post";
+import { Post } from "./Post";
 
 @Entity({ name: "users" })
 export class User {
@@ -41,9 +41,9 @@ export class User {
   @UpdateDateColumn({ type: "timestamptz", name: "updated_at" })
   updatedAt!: Date;
 
-  // String target breaks the User <-> Post runtime import cycle
-  // (emitDecoratorMetadata would otherwise evaluate the class at import time).
-  @OneToMany("Post", "author")
+  // Function-form target references the class object, so this survives
+  // production minification (class names are not preserved in prod builds).
+  @OneToMany(() => Post, (post) => post.author)
   posts!: Post[];
 
   @BeforeInsert()
