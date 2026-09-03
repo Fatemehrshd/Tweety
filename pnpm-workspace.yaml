@@ -3,3 +3,4 @@ packages:
   - frontend
   - mcp
   - .agents/skills/tweet-summarizer
+  - .agents/skills/topic-discovery
