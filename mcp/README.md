@@ -52,6 +52,17 @@ Or with the MCP Inspector for a quick smoke test:
 npx @modelcontextprotocol/inspector node mcp/dist/index.js
 ```
 
+## Tests
+
+```bash
+pnpm --filter mcp test       # vitest: API errors, session lifecycle, tool wiring
+pnpm --filter mcp typecheck  # strict tsc (tests included)
+```
+
+Protocol-level tests drive the real tool wiring through an in-memory MCP
+client with a stubbed backend — including the case where editing another
+user's post surfaces the backend's 403 as a tool error.
+
 ## Tools (13)
 
 | Tool | Auth | What it does |
