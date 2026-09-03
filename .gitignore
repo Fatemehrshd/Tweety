@@ -8,6 +8,9 @@ out/
 dist/
 build/
 
+# runtime uploads (user avatars live on disk, never in git)
+backend/public/uploads/
+
 # env
 .env
 .env.local
