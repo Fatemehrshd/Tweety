@@ -69,7 +69,7 @@ These are non-negotiable for a product-level build, not aspirational. Each has r
 
 ## Testing
 - After implementing a feature: write/update tests covering its core logic (unit for backend logic, component/e2e for frontend flows as appropriate)
-- Before proposing a commit: run typecheck + tests for whichever side(s) you touched — `pnpm --filter backend test`, `pnpm --filter frontend test`
+- Before proposing a commit: run typecheck + tests for whichever side(s) you touched — `pnpm --filter backend test`, `pnpm --filter frontend test`, `pnpm --filter mcp test`
 
 ## Skills
 Don't inline these workflows — call the referenced skill when the situation matches, on either side.
