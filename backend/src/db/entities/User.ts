@@ -9,7 +9,7 @@ import {
   OneToMany,
   Index,
 } from "typeorm";
-import { Post } from "./Post";
+import type { Post } from "./Post";
 
 @Entity({ name: "users" })
 export class User {
@@ -41,7 +41,9 @@ export class User {
   @UpdateDateColumn({ type: "timestamptz", name: "updated_at" })
   updatedAt!: Date;
 
-  @OneToMany(() => Post, (post) => post.author)
+  // String target breaks the User <-> Post runtime import cycle
+  // (emitDecoratorMetadata would otherwise evaluate the class at import time).
+  @OneToMany("Post", "author")
   posts!: Post[];
 
   @BeforeInsert()
