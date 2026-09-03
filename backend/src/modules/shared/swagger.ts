@@ -1,5 +1,7 @@
-import { OpenAPIRegistry, OpenApiGeneratorV31 } from "@asteasolutions/zod-to-openapi";
+import { OpenAPIRegistry, OpenApiGeneratorV31, extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
+
+extendZodWithOpenApi(z);
 
 // Single registry — route handlers register their paths/schemas here at module load.
 export const registry = new OpenAPIRegistry();
