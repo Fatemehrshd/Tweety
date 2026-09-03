@@ -25,7 +25,7 @@ export function toPublicPost(post: Post): PublicPost {
   };
 }
 
-export async function getMyPosts(
+export async function getPostsByAuthor(
   authorId: string,
   cursor: string | null,
   limit = DEFAULT_LIMIT,
@@ -35,6 +35,14 @@ export async function getMyPosts(
   const items = (hasMore ? rows.slice(0, limit) : rows).map(toPublicPost);
   const nextCursor = hasMore ? items[items.length - 1]?.createdAt ?? null : null;
   return { items, nextCursor };
+}
+
+export async function getMyPosts(
+  authorId: string,
+  cursor: string | null,
+  limit = DEFAULT_LIMIT,
+): Promise<CursorPage<PublicPost>> {
+  return getPostsByAuthor(authorId, cursor, limit);
 }
 
 export async function createNewPost(authorId: string, text: string): Promise<PublicPost> {

@@ -1,1 +1,1 @@
-export { getMyPosts, createNewPost, editPost, removePost, getPost, toPublicPost } from "./posts.service";
+export { getMyPosts, getPostsByAuthor, createNewPost, editPost, removePost, getPost, toPublicPost } from "./posts.service";
