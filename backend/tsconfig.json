@@ -2,7 +2,12 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    // Off: with it on, TS emits design:type metadata that evaluates the
+    // related class at import time, crashing on the User <-> Post circular
+    // import (Cannot access 'User' before initialization). Every column and
+    // relation here declares its type explicitly, and relations reference
+    // class objects (minification-safe), so emitted metadata is not needed.
+    "emitDecoratorMetadata": false,
     "baseUrl": ".",
     "paths": {
       "@/*": [
