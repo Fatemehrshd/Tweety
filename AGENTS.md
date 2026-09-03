@@ -6,7 +6,8 @@ This is a monorepo: `frontend/` and `backend/` each have their own `AGENTS.md` w
 ## Repo layout
 - `frontend/` — web client. Rules: `frontend/AGENTS.md`
 - `backend/` — API. Rules: `backend/AGENTS.md`
-- Nothing shared lives outside these two folders except this file, workspace config, and CI config
+- `mcp/` — MCP server (agent interface to the backend API, stdio). Rules: `mcp/AGENTS.md`
+- Nothing shared lives outside these folders except this file, workspace config, and CI config
 
 
 ## Technology
@@ -22,8 +23,9 @@ This is a monorepo: `frontend/` and `backend/` each have their own `AGENTS.md` w
 
 ## Setup
 - pnpm workspaces at the root
-- `pnpm install` at root installs both sides
+- `pnpm install` at root installs all sides
 - `pnpm --filter frontend dev` / `pnpm --filter backend dev` to run one side only
+- `pnpm --filter mcp build && pnpm --filter mcp start` to run the MCP server (needs the backend running)
 
 ## Architecture characteristics
 These are non-negotiable for a product-level build, not aspirational. Each has repo-wide rules here and stack-specific rules in the nested files.
