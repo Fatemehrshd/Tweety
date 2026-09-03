@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { randomUUID } from "crypto";
+// NOTE: middleware runs on the Edge runtime — no Node.js built-ins.
+// `crypto.randomUUID()` here is the Web Crypto API, available in Edge + Node.
 
 // CORS — frontend on 3000, backend on 4000. credentials: 'include' required on the client.
 const CORS = {
@@ -13,7 +14,7 @@ const CORS = {
 export function middleware(req: NextRequest) {
   // Generate / propagate a request ID for every API call.
   const incoming = req.headers.get("x-request-id");
-  const requestId = incoming && incoming.length <= 128 ? incoming : randomUUID();
+  const requestId = incoming && incoming.length <= 128 ? incoming : crypto.randomUUID();
 
   // Preflight — answer immediately.
   if (req.method === "OPTIONS") {
