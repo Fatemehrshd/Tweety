@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "twitter-mvp": {
+      "command": "pnpm",
+      "args": ["--filter", "mcp", "start"],
+      "env": {
+        "API_BASE_URL": "http://localhost:4000"
+      }
+    }
+  }
+}

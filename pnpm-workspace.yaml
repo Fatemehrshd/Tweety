@@ -4,3 +4,4 @@ packages:
   - mcp
   - .agents/skills/tweet-summarizer
   - .agents/skills/topic-discovery
+  - .agents/skills/post-publisher
