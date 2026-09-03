@@ -12,17 +12,25 @@ HTTP API, using the existing authentication flow.
 
 ## Run
 
+Stdio (default — for Claude Desktop and other local clients):
+
 ```bash
 pnpm --filter mcp build && pnpm --filter mcp start
 ```
 
-Point it at another backend with:
+Streamable HTTP (for remote/networked clients):
 
 ```bash
-API_BASE_URL=http://localhost:4000
+MCP_TRANSPORT=http pnpm --filter mcp start
+# -> http://127.0.0.1:4100/mcp  (+ GET /health)
 ```
 
-(copy `.env.example` if you keep local env files)
+| Variable | Default | Meaning |
+| -------- | ------- | ------- |
+| `API_BASE_URL` | `http://localhost:4000` | Existing backend API |
+| `MCP_TRANSPORT` | `stdio` | `stdio` or `http` |
+| `MCP_HOST` | `127.0.0.1` | HTTP bind address (keep localhost unless behind TLS + access control) |
+| `MCP_PORT` | `4100` | HTTP port |
 
 ## Use with an MCP client (Claude Desktop example)
 
@@ -67,8 +75,9 @@ stdio); set an avatar URL via `users_update_me` instead.
 
 ## Session notes
 
-- Tokens live in process memory only (stdio serves exactly one client) and are
-  never returned to the agent or logged.
+- Tokens live in process memory only and are never returned to the agent or logged.
+- stdio serves one client; HTTP keeps one auth session per MCP session id, so
+  concurrent clients never share tokens. Closing an MCP session drops its auth.
 - A 401 triggers exactly one silent token refresh (rotating refresh cookie,
   same as the web client) before an auth error surfaces.
 - Unknown usernames fail at login with "User not found" — the public profile
