@@ -2,3 +2,4 @@ packages:
   - backend
   - frontend
   - mcp
+  - .agents/skills/tweet-summarizer
