@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import { registry, PublicUserSchema, CursorPageOfPostsSchema, ErrorResponseSchema } from "@/modules/shared/swagger";
-import { UpdateProfileBodySchema } from "./users.schemas";
+import { UpdateProfileBodySchema, ChangePasswordBodySchema } from "./users.schemas";
 
 extendZodWithOpenApi(z);
 
 registry.register("UpdateProfileBody", UpdateProfileBodySchema);
+registry.register("ChangePasswordBody", ChangePasswordBodySchema);
 
 const tags = ["Users"];
 const bearerAuth = [{ BearerAuth: [] }];
@@ -52,6 +53,44 @@ registry.registerPath({
   summary: "Update own profile (bio and/or profile picture URL)",
   security: bearerAuth,
   request: { body: { content: { "application/json": { schema: UpdateProfileBodySchema } } } },
+  responses: {
+    200: { description: "Updated profile", content: { "application/json": { schema: PublicUserSchema } } },
+    400: { description: "Validation error", content: { "application/json": { schema: ErrorResponseSchema } } },
+    401: { description: "Unauthorized", content: { "application/json": { schema: ErrorResponseSchema } } },
+  },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/api/users/me/password",
+  tags,
+  summary: "Change own password (requires current password)",
+  security: bearerAuth,
+  request: { body: { content: { "application/json": { schema: ChangePasswordBodySchema } } } },
+  responses: {
+    200: { description: "Updated profile", content: { "application/json": { schema: PublicUserSchema } } },
+    400: { description: "Validation error", content: { "application/json": { schema: ErrorResponseSchema } } },
+    401: { description: "Unauthorized or wrong current password", content: { "application/json": { schema: ErrorResponseSchema } } },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/users/me/profile-picture",
+  tags,
+  summary: "Upload own profile picture (JPEG/PNG/WebP/GIF, max 5 MB)",
+  security: bearerAuth,
+  request: {
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            file: z.string().openapi({ type: "string", format: "binary" }),
+          }),
+        },
+      },
+    },
+  },
   responses: {
     200: { description: "Updated profile", content: { "application/json": { schema: PublicUserSchema } } },
     400: { description: "Validation error", content: { "application/json": { schema: ErrorResponseSchema } } },

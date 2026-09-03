@@ -17,12 +17,17 @@ async function request<T>(
   path: string,
   options?: {
     body?: unknown;
+    form?: FormData;
     token?: string;
   },
 ): Promise<T> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  const headers: Record<string, string> = {};
+
+  // Only set JSON content type for JSON bodies — the browser sets the
+  // multipart boundary itself when given FormData.
+  if (!options?.form) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (options?.token) {
     headers["Authorization"] = `Bearer ${options.token}`;
@@ -31,7 +36,7 @@ async function request<T>(
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
-    body: options?.body ? JSON.stringify(options.body) : undefined,
+    body: options?.form ?? (options?.body ? JSON.stringify(options.body) : undefined),
     credentials: "include", // send cookies (refresh token)
   });
 
@@ -66,6 +71,13 @@ export const api = {
   getMe: (token: string) => request<User>("GET", "/api/users/me", { token }),
   updateMe: (token: string, data: { bio?: string | null; profilePictureUrl?: string | null }) =>
     request<User>("PATCH", "/api/users/me", { token, body: data }),
+  changePassword: (token: string, data: { currentPassword: string; newPassword: string }) =>
+    request<User>("PATCH", "/api/users/me/password", { token, body: data }),
+  uploadProfilePicture: (token: string, file: File) => {
+    const form = new FormData();
+    form.set("file", file);
+    return request<User>("POST", "/api/users/me/profile-picture", { token, form });
+  },
   getUserByUsername: (username: string) => request<User>("GET", `/api/users/${username}`),
   getUserPosts: (username: string, cursor?: string, limit = 20) => {
     const params = new URLSearchParams({ limit: String(limit) });
