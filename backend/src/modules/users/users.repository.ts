@@ -13,7 +13,7 @@ export async function findUserByUsername(username: string): Promise<User | null>
 
 export async function updateUser(
   id: string,
-  data: Partial<Pick<User, "bio" | "profilePictureUrl">>,
+  data: Partial<Pick<User, "bio" | "profilePictureUrl" | "passwordHash">>,
 ): Promise<User> {
   const ds = await getDataSource();
   const repo = ds.getRepository(User);

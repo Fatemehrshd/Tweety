@@ -11,9 +11,18 @@ export default function ProfilePage() {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState("");
-  const [profilePictureUrl, setProfilePictureUrl] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -24,7 +33,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       setBio(user.bio ?? "");
-      setProfilePictureUrl(user.profilePictureUrl ?? "");
     }
   }, [user]);
 
@@ -36,10 +44,7 @@ export default function ProfilePage() {
     setIsSubmitting(true);
 
     try {
-      await api.updateMe(accessToken, {
-        bio: bio || null,
-        profilePictureUrl: profilePictureUrl || null,
-      });
+      await api.updateMe(accessToken, { bio: bio || null });
       await refreshAuth();
       setIsEditing(false);
     } catch (err) {
@@ -50,6 +55,75 @@ export default function ProfilePage() {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setUploadError("");
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (!file) {
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      setUploadError("Please choose a JPEG, PNG, WebP, or GIF image.");
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("Image must be at most 5 MB.");
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      return;
+    }
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleUpload = async () => {
+    if (!accessToken || !selectedFile) return;
+    setUploadError("");
+    setIsUploading(true);
+    try {
+      await api.uploadProfilePicture(accessToken, selectedFile);
+      await refreshAuth();
+      setSelectedFile(null);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    } catch (err) {
+      setUploadError(err instanceof ApiError ? err.message : "Upload failed. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accessToken) return;
+    setPasswordError("");
+    setPasswordSuccess("");
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters.");
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      await api.changePassword(accessToken, { currentPassword, newPassword });
+      setPasswordSuccess("Password changed successfully.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setPasswordError(err instanceof ApiError ? err.message : "Failed to change password.");
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -101,17 +175,32 @@ export default function ProfilePage() {
                 <p className="text-xs text-gray-500 mt-1">{bio.length} / 160</p>
               </div>
               <div>
-                <label htmlFor="profilePictureUrl" className="block text-sm font-medium mb-1">
-                  Profile Picture URL
-                </label>
-                <input
-                  id="profilePictureUrl"
-                  type="url"
-                  value={profilePictureUrl}
-                  onChange={(e) => setProfilePictureUrl(e.target.value)}
-                  className="input"
-                  placeholder="https://example.com/avatar.jpg"
-                />
+                <span className="block text-sm font-medium mb-1">Profile Picture</span>
+                <div className="flex items-center gap-4">
+                  <img
+                    src={previewUrl ?? user.profilePictureUrl ?? ""}
+                    alt="Profile preview"
+                    className="w-16 h-16 rounded-full object-cover bg-gray-200"
+                  />
+                  <div className="flex-1 space-y-2">
+                    <input
+                      id="avatar"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleFileSelect}
+                      className="block w-full text-sm text-gray-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleUpload}
+                      className="btn btn-secondary text-sm"
+                      disabled={!selectedFile || isUploading}
+                    >
+                      {isUploading ? "Uploading..." : "Upload Picture"}
+                    </button>
+                  </div>
+                </div>
+                {uploadError && <p className="text-red-700 text-sm mt-2">{uploadError}</p>}
               </div>
               <div className="flex gap-2">
                 <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
@@ -122,7 +211,10 @@ export default function ProfilePage() {
                   onClick={() => {
                     setIsEditing(false);
                     setBio(user.bio ?? "");
-                    setProfilePictureUrl(user.profilePictureUrl ?? "");
+                    setSelectedFile(null);
+                    if (previewUrl) URL.revokeObjectURL(previewUrl);
+                    setPreviewUrl(null);
+                    setUploadError("");
                     setError("");
                   }}
                   className="btn btn-secondary"
@@ -147,6 +239,66 @@ export default function ProfilePage() {
               )}
             </div>
           )}
+        </div>
+
+        <div className="card mt-6">
+          <h2 className="text-xl font-bold mb-4">Change Password</h2>
+          {passwordError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+              {passwordError}
+            </div>
+          )}
+          {passwordSuccess && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">
+              {passwordSuccess}
+            </div>
+          )}
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="currentPassword" className="block text-sm font-medium mb-1">
+                Current Password
+              </label>
+              <input
+                id="currentPassword"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="input"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="newPassword" className="block text-sm font-medium mb-1">
+                New Password
+              </label>
+              <input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="input"
+                minLength={8}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
+                Confirm New Password
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="input"
+                minLength={8}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" disabled={isChangingPassword}>
+              {isChangingPassword ? "Changing..." : "Change Password"}
+            </button>
+          </form>
         </div>
       </main>
     </div>
