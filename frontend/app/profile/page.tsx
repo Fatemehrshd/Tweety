@@ -177,11 +177,17 @@ export default function ProfilePage() {
               <div>
                 <span className="block text-sm font-medium mb-1">Profile Picture</span>
                 <div className="flex items-center gap-4">
-                  <img
-                    src={previewUrl ?? user.profilePictureUrl ?? ""}
-                    alt="Profile preview"
-                    className="w-16 h-16 rounded-full object-cover bg-gray-200"
-                  />
+                  {(previewUrl ?? user.profilePictureUrl) ? (
+                    <img
+                      src={previewUrl ?? user.profilePictureUrl ?? ""}
+                      alt="Profile preview"
+                      className="w-16 h-16 rounded-full object-cover bg-gray-200"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xl font-bold">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 space-y-2">
                     <input
                       id="avatar"
