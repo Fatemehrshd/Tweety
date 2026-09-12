@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Nav from "@/components/Nav";
 import { ApiError } from "@/lib/api-client";
 
 export default function LoginPage() {
@@ -36,8 +35,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Nav />
       <main className="max-w-md mx-auto px-4 py-12">
+        <Link
+          href="/"
+          className="block text-center text-2xl font-extrabold tracking-tight text-brand-500 mb-6"
+        >
+          Tweety
+        </Link>
         <div className="card">
           <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
           {error && (
