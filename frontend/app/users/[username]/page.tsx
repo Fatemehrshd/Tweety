@@ -5,6 +5,9 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import { api, ApiError, type User, type Post } from "@/lib/api-client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PostListSkeleton, PostSkeleton } from "@/components/PostSkeleton";
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -60,8 +63,18 @@ export default function UserProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gray-50">
+        <Nav />
+        <main className="max-w-2xl mx-auto px-4 py-8 space-y-6" aria-busy="true">
+          <div className="card flex items-center gap-4">
+            <Skeleton className="h-20 w-20 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-4 w-56" />
+            </div>
+          </div>
+          <PostListSkeleton count={2} />
+        </main>
       </div>
     );
   }
@@ -72,7 +85,9 @@ export default function UserProfilePage() {
       <main className="max-w-2xl mx-auto px-4 py-8">
         {error && !user ? (
           <div className="card text-center">
-            <p className="text-gray-700 mb-4">{error}</p>
+            <Alert variant="destructive" className="mb-4 text-left">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
             <Link href="/explore" className="text-blue-600 hover:underline text-sm">
               Back to Explore
             </Link>
@@ -122,12 +137,13 @@ export default function UserProfilePage() {
                       </button>
                     </div>
                   )}
+                  {isLoadingMore && <PostSkeleton />}
                 </div>
               )}
               {error && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-                  {error}
-                </div>
+                <Alert variant="destructive" className="mt-4">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
             </>
           )
