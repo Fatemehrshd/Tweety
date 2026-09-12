@@ -31,7 +31,7 @@ export default function HomePage() {
       <div className="card w-full max-w-sm p-8 text-center">
         <h1 className="text-3xl font-extrabold tracking-tight text-brand-500">Tweety</h1>
         <p className="mt-2 mb-8 text-sm text-gray-600">
-          Share what&apos;s on your mind — 280 characters at a time.
+          Share what&apos;s on your mind!
         </p>
         <div className="flex flex-col gap-3">
           <Link href="/register" className={`btn btn-primary ${focusRing}`}>
