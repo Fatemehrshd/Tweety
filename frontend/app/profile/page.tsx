@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
 import { api, ApiError } from "@/lib/api-client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
   const { user, accessToken, isLoading, refreshAuth } = useAuth();
@@ -129,8 +131,17 @@ export default function ProfilePage() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gray-50">
+        <Nav />
+        <main className="max-w-2xl mx-auto px-4 py-8" aria-busy="true">
+          <div className="card flex items-start justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-7 w-44" />
+              <Skeleton className="h-4 w-56" />
+            </div>
+            <Skeleton className="h-9 w-28" />
+          </div>
+        </main>
       </div>
     );
   }
@@ -155,9 +166,9 @@ export default function ProfilePage() {
           {isEditing ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-                  {error}
-                </div>
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
               <div>
                 <label htmlFor="bio" className="block text-sm font-medium mb-1">
@@ -250,9 +261,9 @@ export default function ProfilePage() {
         <div className="card mt-6">
           <h2 className="text-xl font-bold mb-4">Change Password</h2>
           {passwordError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-              {passwordError}
-            </div>
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{passwordError}</AlertDescription>
+            </Alert>
           )}
           {passwordSuccess && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">

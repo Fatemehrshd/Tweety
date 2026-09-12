@@ -4,12 +4,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import { api, type Post } from "@/lib/api-client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PostListSkeleton, PostSkeleton } from "@/components/PostSkeleton";
 
 export default function ExplorePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [moreError, setMoreError] = useState("");
 
   useEffect(() => {
     loadPosts();
@@ -20,8 +24,10 @@ export default function ExplorePage() {
       const { items, nextCursor: cursor } = await api.getExploreFeed();
       setPosts(items);
       setNextCursor(cursor);
+      setLoadError("");
     } catch (err) {
       console.error("Failed to load explore feed:", err);
+      setLoadError("We couldn't load the feed. Check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -31,12 +37,14 @@ export default function ExplorePage() {
     if (!nextCursor || isLoadingMore) return;
 
     setIsLoadingMore(true);
+    setMoreError("");
     try {
       const { items, nextCursor: cursor } = await api.getExploreFeed(nextCursor);
       setPosts([...posts, ...items]);
       setNextCursor(cursor);
     } catch (err) {
       console.error("Failed to load more posts:", err);
+      setMoreError("We couldn't load more posts. Try again.");
     } finally {
       setIsLoadingMore(false);
     }
@@ -48,7 +56,19 @@ export default function ExplorePage() {
       <main className="max-w-2xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Explore</h1>
         {isLoading ? (
-          <div className="text-center text-gray-600">Loading...</div>
+          <PostListSkeleton />
+        ) : loadError ? (
+          <Alert variant="destructive">
+            <div>
+              <AlertTitle>Feed unavailable</AlertTitle>
+              <AlertDescription className="mt-3 flex items-center justify-between gap-3">
+                <span>{loadError}</span>
+                <button onClick={loadPosts} className="btn btn-secondary text-sm shrink-0">
+                  Try again
+                </button>
+              </AlertDescription>
+            </div>
+          </Alert>
         ) : posts.length === 0 ? (
           <p className="text-gray-500 text-center">No posts yet. Be the first to post!</p>
         ) : (
@@ -88,6 +108,20 @@ export default function ExplorePage() {
                   {isLoadingMore ? "Loading..." : "Load More"}
                 </button>
               </div>
+            )}
+            {isLoadingMore && <PostSkeleton />}
+            {moreError && (
+              <Alert variant="destructive">
+                <div>
+                  <AlertTitle>Pagination failed</AlertTitle>
+                  <AlertDescription className="mt-3 flex items-center justify-between gap-3">
+                    <span>{moreError}</span>
+                    <button onClick={loadMore} className="btn btn-secondary text-sm shrink-0">
+                      Try again
+                    </button>
+                  </AlertDescription>
+                </div>
+              </Alert>
             )}
           </div>
         )}

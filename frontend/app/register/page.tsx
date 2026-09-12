@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ApiError } from "@/lib/api-client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   validateRegister,
   mapApiErrorToField,
@@ -68,12 +69,9 @@ export default function RegisterPage() {
         <div className="card">
           <h1 className="text-2xl font-bold mb-6 text-center">Create an account</h1>
           {formError && (
-            <div
-              role="alert"
-              className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm"
-            >
-              {formError}
-            </div>
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
           )}
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <div>

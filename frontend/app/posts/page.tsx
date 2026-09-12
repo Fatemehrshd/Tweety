@@ -5,6 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
 import { api, type Post, ApiError } from "@/lib/api-client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PostListSkeleton } from "@/components/PostSkeleton";
 
 export default function PostsPage() {
   const { user, accessToken, isLoading } = useAuth();
@@ -16,6 +19,7 @@ export default function PostsPage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -34,8 +38,10 @@ export default function PostsPage() {
     try {
       const { items } = await api.getMyPosts(accessToken);
       setPosts(items);
+      setLoadError("");
     } catch (err) {
       console.error("Failed to load posts:", err);
+      setLoadError("We couldn't load your posts. Check your connection and try again.");
     } finally {
       setIsLoadingPosts(false);
     }
@@ -104,8 +110,19 @@ export default function PostsPage() {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-gray-50">
+        <Nav />
+        <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+          <div className="card">
+            <Skeleton className="mb-4 h-5 w-40" />
+            <Skeleton className="mb-3 h-20 w-full" />
+            <div className="flex justify-between">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-9 w-20" />
+            </div>
+          </div>
+          <PostListSkeleton />
+        </main>
       </div>
     );
   }
@@ -117,9 +134,9 @@ export default function PostsPage() {
         <div className="card">
           <h2 className="text-lg font-bold mb-4">Create a new post</h2>
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-              {error}
-            </div>
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
           <form onSubmit={handleCreatePost} className="space-y-3">
             <textarea
@@ -142,8 +159,18 @@ export default function PostsPage() {
 
         <div>
           <h2 className="text-xl font-bold mb-4">My Posts</h2>
+          {loadError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription className="flex items-center justify-between gap-3">
+                <span>{loadError}</span>
+                <button onClick={loadPosts} className="btn btn-secondary text-sm shrink-0">
+                  Try again
+                </button>
+              </AlertDescription>
+            </Alert>
+          )}
           {isLoadingPosts ? (
-            <div className="text-center text-gray-600">Loading posts...</div>
+            <PostListSkeleton />
           ) : posts.length === 0 ? (
             <p className="text-gray-500 text-center">No posts yet. Create your first post above!</p>
           ) : (
