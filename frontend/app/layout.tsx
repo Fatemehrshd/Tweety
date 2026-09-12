@@ -3,8 +3,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Twitter-like App",
-  description: "A Twitter-like social network",
+  title: "Tweety",
+  description: "Share what's on your mind — 280 characters at a time.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
