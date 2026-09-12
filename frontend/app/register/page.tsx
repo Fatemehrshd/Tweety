@@ -4,31 +4,52 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Nav from "@/components/Nav";
 import { ApiError } from "@/lib/api-client";
+import {
+  validateRegister,
+  mapApiErrorToField,
+  type RegisterFields,
+  type RegisterFieldErrors,
+} from "@/lib/register-validation";
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [values, setValues] = useState<RegisterFields>({ email: "", username: "", password: "" });
+  const [fieldErrors, setFieldErrors] = useState<RegisterFieldErrors>({});
+  const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register } = useAuth();
   const router = useRouter();
 
+  const setValue = (field: keyof RegisterFields, value: string) => {
+    setValues((prev) => ({ ...prev, [field]: value }));
+    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setFormError("");
+
+    const errors = validateRegister(values);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
     setIsSubmitting(true);
 
     try {
-      await register(email, username, password);
+      await register(values.email, values.username, values.password);
       router.push("/explore");
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        const mapped = mapApiErrorToField(err.message);
+        if (mapped) {
+          setFieldErrors((prev) => ({ ...prev, [mapped.field]: mapped.message }));
+        } else {
+          setFormError(err.message);
+        }
       } else {
-        setError("Registration failed. Please try again.");
+        setFormError("Registration failed. Please try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -37,16 +58,24 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Nav />
       <main className="max-w-md mx-auto px-4 py-12">
+        <Link
+          href="/"
+          className="block text-center text-2xl font-extrabold tracking-tight text-brand-500 mb-6"
+        >
+          Tweety
+        </Link>
         <div className="card">
           <h1 className="text-2xl font-bold mb-6 text-center">Create an account</h1>
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-              {error}
+          {formError && (
+            <div
+              role="alert"
+              className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm"
+            >
+              {formError}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">
                 Email
@@ -54,11 +83,17 @@ export default function RegisterPage() {
               <input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input"
-                required
+                value={values.email}
+                onChange={(e) => setValue("email", e.target.value)}
+                aria-invalid={fieldErrors.email ? true : undefined}
+                aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                className={`input ${fieldErrors.email ? "border-red-400" : ""}`}
               />
+              {fieldErrors.email && (
+                <p id="email-error" role="alert" className="mt-1 text-sm text-red-600">
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="username" className="block text-sm font-medium mb-1">
@@ -67,15 +102,17 @@ export default function RegisterPage() {
               <input
                 id="username"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="input"
-                required
-                minLength={3}
-                maxLength={64}
-                pattern="[a-zA-Z0-9_]+"
-                title="Username may only contain letters, digits, and underscores"
+                value={values.username}
+                onChange={(e) => setValue("username", e.target.value)}
+                aria-invalid={fieldErrors.username ? true : undefined}
+                aria-describedby={fieldErrors.username ? "username-error" : undefined}
+                className={`input ${fieldErrors.username ? "border-red-400" : ""}`}
               />
+              {fieldErrors.username && (
+                <p id="username-error" role="alert" className="mt-1 text-sm text-red-600">
+                  {fieldErrors.username}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-1">
@@ -84,12 +121,17 @@ export default function RegisterPage() {
               <input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input"
-                required
-                minLength={8}
+                value={values.password}
+                onChange={(e) => setValue("password", e.target.value)}
+                aria-invalid={fieldErrors.password ? true : undefined}
+                aria-describedby={fieldErrors.password ? "password-error" : undefined}
+                className={`input ${fieldErrors.password ? "border-red-400" : ""}`}
               />
+              {fieldErrors.password && (
+                <p id="password-error" role="alert" className="mt-1 text-sm text-red-600">
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
             <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
               {isSubmitting ? "Creating account..." : "Sign up"}
@@ -98,7 +140,7 @@ export default function RegisterPage() {
           <p className="mt-4 text-center text-sm text-gray-600">
             Already have an account?{" "}
             <Link href="/login" className="text-blue-600 hover:underline">
-              Login
+              Log in
             </Link>
           </p>
         </div>
